@@ -1,0 +1,34 @@
+{
+    "year": 2026,
+    "query": "",
+    "count": 296,
+    "fetch_duration_seconds": 100.218,
+    "messages": [
+        {
+            "id": "",
+            "threadId": "",
+            "subject": "",
+            "from": "",
+            "to": "",
+            "date": "",
+            "snippet": ""
+            "body": ""
+        },
+    ],
+    "extraction_input": {
+         "source": "gmail",
+        "year": 2026,
+        "messages": [
+        {
+            "id": "",
+            "threadId": "",
+            "subject": "",
+            "from": "",
+            "to": "",
+            "date": "",
+            "snippet": ""
+            "body": ""
+        },
+    ],
+    }
+}

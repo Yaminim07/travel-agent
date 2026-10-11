@@ -1,0 +1,16 @@
+{
+  "npmScope": "travel-agent",
+  "implicitDependencies": {
+    "workspace.json": "*",
+    "package.json": {
+      "dependencies": "*",
+      "devDependencies": "*"
+    }
+  },
+  "projects": {
+    "frontend": "frontend",
+    "backend": "backend",
+    "extraction-service": "extraction-service"
+  },
+  "analytics": false
+}

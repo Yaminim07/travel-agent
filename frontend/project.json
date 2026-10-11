@@ -1,0 +1,33 @@
+{
+  "name": "frontend",
+  "targets": {
+    "install": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "cd frontend && npm install",
+        "cwd": "./"
+      }
+    },
+    "serve": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "cd frontend && npm run dev -- --host 0.0.0.0",
+        "cwd": "./"
+      }
+    },
+    "build": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "cd frontend && npm run build",
+        "cwd": "./"
+      }
+    },
+    "preview": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "cd frontend && npm run preview -- --host 0.0.0.0",
+        "cwd": "./"
+      }
+    }
+  }
+}

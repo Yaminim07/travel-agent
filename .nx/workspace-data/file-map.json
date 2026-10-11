@@ -1,0 +1,252 @@
+{
+  "version": "6.0",
+  "nxVersion": "23.3.0",
+  "pathMappings": {},
+  "nxJsonPlugins": [],
+  "fileMap": {
+    "nonProjectFiles": [
+      {
+        "file": "agent/plans/backend-auth-db-endpoints-plan.md",
+        "hash": "456450790708820152"
+      },
+      {
+        "file": "design/dashboard.html",
+        "hash": "16862333406155644363"
+      },
+      {
+        "file": "README.md",
+        "hash": "9396508131776382805"
+      },
+      {
+        "file": "design/sample.json",
+        "hash": "11182417343614590965"
+      },
+      {
+        "file": "package.json",
+        "hash": "1950573753720836828"
+      },
+      {
+        "file": "agent/plans/google-oauth-gmail-plan.md",
+        "hash": "308055195771826164"
+      },
+      {
+        "file": ".gitignore",
+        "hash": "10860474968270039910"
+      },
+      {
+        "file": "design/LoginScreen.jpeg",
+        "hash": "2433009082121938731"
+      },
+      {
+        "file": "agent/plans/version_1_requirement_plan.md",
+        "hash": "10115087630275472215"
+      },
+      {
+        "file": "design/MyTripsDashboard.jpeg",
+        "hash": "15140108727987197169"
+      },
+      {
+        "file": "package-lock.json",
+        "hash": "9027007827047413874"
+      },
+      {
+        "file": ".github/instructions/django-backend-development.instructions.md",
+        "hash": "1266779638905729895"
+      },
+      {
+        "file": "docker-compose.yml",
+        "hash": "16489045375276879255"
+      },
+      {
+        "file": ".github/instructions/react-frontend-development.instructions.md",
+        "hash": "10441529165819228733"
+      },
+      {
+        "file": "agent/plans/extraction-service-monorepo-plan.md",
+        "hash": "9229788805848976853"
+      },
+      {
+        "file": "nx.json",
+        "hash": "12085392963438580843"
+      }
+    ],
+    "projectFileMap": {
+      "backend": [
+        {
+          "file": "backend/.gitignore",
+          "hash": "12809314710469543065"
+        },
+        {
+          "file": "backend/README.md",
+          "hash": "16934280825006853186"
+        },
+        {
+          "file": "backend/config/__init__.py",
+          "hash": "3244421341483603138"
+        },
+        {
+          "file": "backend/config/settings.py",
+          "hash": "3981064591460537064"
+        },
+        {
+          "file": "backend/config/urls.py",
+          "hash": "11088671428071312896"
+        },
+        {
+          "file": "backend/config/wsgi.py",
+          "hash": "8293879425655727833"
+        },
+        {
+          "file": "backend/core/__init__.py",
+          "hash": "3244421341483603138"
+        },
+        {
+          "file": "backend/core/apps.py",
+          "hash": "6755259931864749140"
+        },
+        {
+          "file": "backend/core/auth_views.py",
+          "hash": "393322634106927813"
+        },
+        {
+          "file": "backend/core/migrations/0001_initial.py",
+          "hash": "17335905010577315562"
+        },
+        {
+          "file": "backend/core/migrations/__init__.py",
+          "hash": "3244421341483603138"
+        },
+        {
+          "file": "backend/core/models.py",
+          "hash": "10148247469136394961"
+        },
+        {
+          "file": "backend/core/serializers.py",
+          "hash": "1586069005404845433"
+        },
+        {
+          "file": "backend/core/tests/test_auth_flow.py",
+          "hash": "14584792358419536844"
+        },
+        {
+          "file": "backend/core/urls.py",
+          "hash": "13805634595478233965"
+        },
+        {
+          "file": "backend/core/views.py",
+          "hash": "2243358086336430564"
+        },
+        {
+          "file": "backend/manage.py",
+          "hash": "3099283543561205838"
+        },
+        {
+          "file": "backend/project.json",
+          "hash": "14444754108214955846"
+        },
+        {
+          "file": "backend/pyproject.toml",
+          "hash": "2678499935087244290"
+        }
+      ],
+      "frontend": [
+        {
+          "file": "frontend/.env.example",
+          "hash": "12110092327893382220"
+        },
+        {
+          "file": "frontend/.gitignore",
+          "hash": "16147878747327034353"
+        },
+        {
+          "file": "frontend/index.html",
+          "hash": "367109625279750403"
+        },
+        {
+          "file": "frontend/package.json",
+          "hash": "8917260519809979550",
+          "deps": [
+            "npm:@types/react@19.3.0",
+            "npm:@types/react-dom@19.3.0",
+            "npm:@vitejs/plugin-react",
+            "npm:typescript",
+            "npm:vite",
+            "npm:vitest",
+            "npm:@mantine/core@9.7.1",
+            "npm:@mantine/hooks@9.7.1",
+            "npm:react@19.3.0",
+            "npm:react-dom@19.3.0",
+            "npm:react-router-dom"
+          ]
+        },
+        {
+          "file": "frontend/project.json",
+          "hash": "11912598068200751249"
+        },
+        {
+          "file": "frontend/src/App.tsx",
+          "hash": "7774030915182708230"
+        },
+        {
+          "file": "frontend/src/env.d.ts",
+          "hash": "12946363841406869089"
+        },
+        {
+          "file": "frontend/src/main.tsx",
+          "hash": "1376536621379495132"
+        },
+        {
+          "file": "frontend/src/pages/DashboardPage.tsx",
+          "hash": "545108355022465553"
+        },
+        {
+          "file": "frontend/src/pages/LoginPage.tsx",
+          "hash": "10676059850226988534"
+        },
+        {
+          "file": "frontend/src/styles.css",
+          "hash": "16671443389817044527"
+        },
+        {
+          "file": "frontend/tsconfig.json",
+          "hash": "3703435682370374828"
+        },
+        {
+          "file": "frontend/vite.config.ts",
+          "hash": "16380766672463860113"
+        }
+      ],
+      "extraction-service": [
+        {
+          "file": "extraction-service/.env.example",
+          "hash": "3178125655521826587"
+        },
+        {
+          "file": "extraction-service/app/__init__.py",
+          "hash": "3244421341483603138"
+        },
+        {
+          "file": "extraction-service/app/config.py",
+          "hash": "5610430260106649544"
+        },
+        {
+          "file": "extraction-service/app/context.py",
+          "hash": "11117099738510571244"
+        },
+        {
+          "file": "extraction-service/app/main.py",
+          "hash": "13648506819484962987"
+        },
+        {
+          "file": "extraction-service/app/models.py",
+          "hash": "7461828515192042522"
+        },
+        {
+          "file": "extraction-service/project.json",
+          "hash": "7749094253007128816"
+        }
+      ]
+    }
+  },
+  "externalNodesHash": "4199032926127725355"
+}

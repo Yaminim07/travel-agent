@@ -1,0 +1,47 @@
+{
+  "name": "backend",
+  "targets": {
+    "install": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "cd backend && python3 -m pip install \"Django>=4.2,<5\" djangorestframework psycopg2-binary",
+        "cwd": "./"
+      }
+    },
+    "serve": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "cd backend && python3 manage.py runserver 0.0.0.0:8000",
+        "cwd": "./"
+      }
+    },
+    "migrate": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "cd backend && python3 manage.py migrate",
+        "cwd": "./"
+      }
+    },
+    "makemigrations": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "cd backend && python3 manage.py makemigrations",
+        "cwd": "./"
+      }
+    },
+    "check": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "cd backend && python3 manage.py check",
+        "cwd": "./"
+      }
+    },
+    "build": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "cd backend && python3 manage.py collectstatic --noinput",
+        "cwd": "./"
+      }
+    }
+  }
+}

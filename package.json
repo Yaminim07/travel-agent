@@ -1,0 +1,20 @@
+{
+  "name": "travel-agent",
+  "version": "0.1.0",
+  "private": true,
+  "workspaces": [
+    "frontend",
+    "backend",
+    "extraction-service"
+  ],
+  "scripts": {
+    "start:frontend": "nx run frontend:serve",
+    "start:backend": "nx run backend:serve",
+    "start:extraction": "nx run extraction-service:serve",
+    "start:all": "concurrently \"npm: start:backend\" \"npm: start:frontend\" \"npm: start:extraction\""
+  },
+  "devDependencies": {
+    "concurrently": "^8.0.1",
+    "nx": "^16.0.0"
+  }
+}

@@ -1,0 +1,424 @@
+{
+  "frontend": {
+    "root": [
+      "frontend/project.json",
+      "nx/core/project-json"
+    ],
+    "name": [
+      "frontend/project.json",
+      "nx/core/project-json"
+    ],
+    "tags": [
+      "frontend/package.json",
+      "nx/core/package-json"
+    ],
+    "tags.npm:private": [
+      "frontend/package.json",
+      "nx/core/package-json"
+    ],
+    "metadata.targetGroups": [
+      "frontend/package.json",
+      "nx/core/package-json"
+    ],
+    "metadata.targetGroups.NPM Scripts": [
+      "frontend/package.json",
+      "nx/core/package-json"
+    ],
+    "metadata.targetGroups.NPM Scripts.0": [
+      "frontend/package.json",
+      "nx/core/package-json"
+    ],
+    "metadata.targetGroups.NPM Scripts.1": [
+      "frontend/package.json",
+      "nx/core/package-json"
+    ],
+    "metadata.js": [
+      "frontend/package.json",
+      "nx/core/package-json"
+    ],
+    "metadata.js.packageName": [
+      "frontend/package.json",
+      "nx/core/package-json"
+    ],
+    "metadata.js.packageVersion": [
+      "frontend/package.json",
+      "nx/core/package-json"
+    ],
+    "metadata.js.packageMain": [
+      "frontend/package.json",
+      "nx/core/package-json"
+    ],
+    "metadata.js.isInPackageManagerWorkspaces": [
+      "frontend/package.json",
+      "nx/core/package-json"
+    ],
+    "targets": [
+      "frontend/package.json",
+      "nx/core/package-json"
+    ],
+    "targets.dev": [
+      "frontend/package.json",
+      "nx/core/package-json"
+    ],
+    "targets.dev.executor": [
+      "frontend/package.json",
+      "nx/core/package-json"
+    ],
+    "targets.dev.metadata": [
+      "frontend/package.json",
+      "nx/core/package-json"
+    ],
+    "targets.dev.options.script": [
+      "frontend/package.json",
+      "nx/core/package-json"
+    ],
+    "targets.dev.options": [
+      "frontend/package.json",
+      "nx/core/package-json"
+    ],
+    "targets.dev.metadata.scriptContent": [
+      "frontend/package.json",
+      "nx/core/package-json"
+    ],
+    "targets.dev.metadata.runCommand": [
+      "frontend/package.json",
+      "nx/core/package-json"
+    ],
+    "targets.test": [
+      "frontend/package.json",
+      "nx/core/package-json"
+    ],
+    "targets.test.executor": [
+      "frontend/package.json",
+      "nx/core/package-json"
+    ],
+    "targets.test.metadata": [
+      "frontend/package.json",
+      "nx/core/package-json"
+    ],
+    "targets.test.options.script": [
+      "frontend/package.json",
+      "nx/core/package-json"
+    ],
+    "targets.test.options": [
+      "frontend/package.json",
+      "nx/core/package-json"
+    ],
+    "targets.test.metadata.scriptContent": [
+      "frontend/package.json",
+      "nx/core/package-json"
+    ],
+    "targets.test.metadata.runCommand": [
+      "frontend/package.json",
+      "nx/core/package-json"
+    ],
+    "targets.install": [
+      "frontend/project.json",
+      "nx/core/project-json"
+    ],
+    "targets.install.executor": [
+      "frontend/project.json",
+      "nx/core/project-json"
+    ],
+    "targets.install.options.command": [
+      "frontend/project.json",
+      "nx/core/project-json"
+    ],
+    "targets.install.options.cwd": [
+      "frontend/project.json",
+      "nx/core/project-json"
+    ],
+    "targets.install.options": [
+      "frontend/project.json",
+      "nx/core/project-json"
+    ],
+    "targets.serve": [
+      "frontend/project.json",
+      "nx/core/project-json"
+    ],
+    "targets.serve.executor": [
+      "frontend/project.json",
+      "nx/core/project-json"
+    ],
+    "targets.serve.options.command": [
+      "frontend/project.json",
+      "nx/core/project-json"
+    ],
+    "targets.serve.options.cwd": [
+      "frontend/project.json",
+      "nx/core/project-json"
+    ],
+    "targets.serve.options": [
+      "frontend/project.json",
+      "nx/core/project-json"
+    ],
+    "targets.build": [
+      "frontend/project.json",
+      "nx/core/project-json"
+    ],
+    "targets.build.executor": [
+      "frontend/project.json",
+      "nx/core/project-json"
+    ],
+    "targets.build.options.command": [
+      "frontend/project.json",
+      "nx/core/project-json"
+    ],
+    "targets.build.options.cwd": [
+      "frontend/project.json",
+      "nx/core/project-json"
+    ],
+    "targets.build.options": [
+      "frontend/project.json",
+      "nx/core/project-json"
+    ],
+    "targets.preview": [
+      "frontend/project.json",
+      "nx/core/project-json"
+    ],
+    "targets.preview.executor": [
+      "frontend/project.json",
+      "nx/core/project-json"
+    ],
+    "targets.preview.options.command": [
+      "frontend/project.json",
+      "nx/core/project-json"
+    ],
+    "targets.preview.options.cwd": [
+      "frontend/project.json",
+      "nx/core/project-json"
+    ],
+    "targets.preview.options": [
+      "frontend/project.json",
+      "nx/core/project-json"
+    ]
+  },
+  "backend": {
+    "root": [
+      "backend/project.json",
+      "nx/core/project-json"
+    ],
+    "name": [
+      "backend/project.json",
+      "nx/core/project-json"
+    ],
+    "targets": [
+      "backend/project.json",
+      "nx/core/project-json"
+    ],
+    "targets.install": [
+      "backend/project.json",
+      "nx/core/project-json"
+    ],
+    "targets.install.executor": [
+      "backend/project.json",
+      "nx/core/project-json"
+    ],
+    "targets.install.options.command": [
+      "backend/project.json",
+      "nx/core/project-json"
+    ],
+    "targets.install.options.cwd": [
+      "backend/project.json",
+      "nx/core/project-json"
+    ],
+    "targets.install.options": [
+      "backend/project.json",
+      "nx/core/project-json"
+    ],
+    "targets.serve": [
+      "backend/project.json",
+      "nx/core/project-json"
+    ],
+    "targets.serve.executor": [
+      "backend/project.json",
+      "nx/core/project-json"
+    ],
+    "targets.serve.options.command": [
+      "backend/project.json",
+      "nx/core/project-json"
+    ],
+    "targets.serve.options.cwd": [
+      "backend/project.json",
+      "nx/core/project-json"
+    ],
+    "targets.serve.options": [
+      "backend/project.json",
+      "nx/core/project-json"
+    ],
+    "targets.migrate": [
+      "backend/project.json",
+      "nx/core/project-json"
+    ],
+    "targets.migrate.executor": [
+      "backend/project.json",
+      "nx/core/project-json"
+    ],
+    "targets.migrate.options.command": [
+      "backend/project.json",
+      "nx/core/project-json"
+    ],
+    "targets.migrate.options.cwd": [
+      "backend/project.json",
+      "nx/core/project-json"
+    ],
+    "targets.migrate.options": [
+      "backend/project.json",
+      "nx/core/project-json"
+    ],
+    "targets.makemigrations": [
+      "backend/project.json",
+      "nx/core/project-json"
+    ],
+    "targets.makemigrations.executor": [
+      "backend/project.json",
+      "nx/core/project-json"
+    ],
+    "targets.makemigrations.options.command": [
+      "backend/project.json",
+      "nx/core/project-json"
+    ],
+    "targets.makemigrations.options.cwd": [
+      "backend/project.json",
+      "nx/core/project-json"
+    ],
+    "targets.makemigrations.options": [
+      "backend/project.json",
+      "nx/core/project-json"
+    ],
+    "targets.check": [
+      "backend/project.json",
+      "nx/core/project-json"
+    ],
+    "targets.check.executor": [
+      "backend/project.json",
+      "nx/core/project-json"
+    ],
+    "targets.check.options.command": [
+      "backend/project.json",
+      "nx/core/project-json"
+    ],
+    "targets.check.options.cwd": [
+      "backend/project.json",
+      "nx/core/project-json"
+    ],
+    "targets.check.options": [
+      "backend/project.json",
+      "nx/core/project-json"
+    ],
+    "targets.build": [
+      "backend/project.json",
+      "nx/core/project-json"
+    ],
+    "targets.build.executor": [
+      "backend/project.json",
+      "nx/core/project-json"
+    ],
+    "targets.build.options.command": [
+      "backend/project.json",
+      "nx/core/project-json"
+    ],
+    "targets.build.options.cwd": [
+      "backend/project.json",
+      "nx/core/project-json"
+    ],
+    "targets.build.options": [
+      "backend/project.json",
+      "nx/core/project-json"
+    ]
+  },
+  "extraction-service": {
+    "root": [
+      "extraction-service/project.json",
+      "nx/core/project-json"
+    ],
+    "name": [
+      "extraction-service/project.json",
+      "nx/core/project-json"
+    ],
+    "targets": [
+      "extraction-service/project.json",
+      "nx/core/project-json"
+    ],
+    "targets.install": [
+      "extraction-service/project.json",
+      "nx/core/project-json"
+    ],
+    "targets.install.executor": [
+      "extraction-service/project.json",
+      "nx/core/project-json"
+    ],
+    "targets.install.options.command": [
+      "extraction-service/project.json",
+      "nx/core/project-json"
+    ],
+    "targets.install.options.cwd": [
+      "extraction-service/project.json",
+      "nx/core/project-json"
+    ],
+    "targets.install.options": [
+      "extraction-service/project.json",
+      "nx/core/project-json"
+    ],
+    "targets.serve": [
+      "extraction-service/project.json",
+      "nx/core/project-json"
+    ],
+    "targets.serve.executor": [
+      "extraction-service/project.json",
+      "nx/core/project-json"
+    ],
+    "targets.serve.options.command": [
+      "extraction-service/project.json",
+      "nx/core/project-json"
+    ],
+    "targets.serve.options.cwd": [
+      "extraction-service/project.json",
+      "nx/core/project-json"
+    ],
+    "targets.serve.options": [
+      "extraction-service/project.json",
+      "nx/core/project-json"
+    ],
+    "targets.run": [
+      "extraction-service/project.json",
+      "nx/core/project-json"
+    ],
+    "targets.run.executor": [
+      "extraction-service/project.json",
+      "nx/core/project-json"
+    ],
+    "targets.run.options.command": [
+      "extraction-service/project.json",
+      "nx/core/project-json"
+    ],
+    "targets.run.options.cwd": [
+      "extraction-service/project.json",
+      "nx/core/project-json"
+    ],
+    "targets.run.options": [
+      "extraction-service/project.json",
+      "nx/core/project-json"
+    ],
+    "targets.check": [
+      "extraction-service/project.json",
+      "nx/core/project-json"
+    ],
+    "targets.check.executor": [
+      "extraction-service/project.json",
+      "nx/core/project-json"
+    ],
+    "targets.check.options.command": [
+      "extraction-service/project.json",
+      "nx/core/project-json"
+    ],
+    "targets.check.options.cwd": [
+      "extraction-service/project.json",
+      "nx/core/project-json"
+    ],
+    "targets.check.options": [
+      "extraction-service/project.json",
+      "nx/core/project-json"
+    ]
+  }
+}
