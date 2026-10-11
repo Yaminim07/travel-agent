@@ -85,8 +85,9 @@ class AuthFlowTests(TestCase):
         self.assertEqual(response.status_code, 302)
         self.assertTrue(get_user_model().objects.filter(email="google-user@example.com").exists())
 
+    @patch("core.views.requests.post")
     @patch("core.views.requests.get")
-    def test_gmail_messages_endpoint_returns_messages_for_authenticated_user(self, mock_get):
+    def test_gmail_messages_endpoint_returns_messages_for_authenticated_user(self, mock_get, mock_post):
         GoogleAccount.objects.create(
             user=self.user,
             provider="google",
@@ -163,7 +164,30 @@ class AuthFlowTests(TestCase):
 
             return type("Response", (), {"status_code": 200, "json": lambda self: {"messages": []}})()
 
+        def fake_post(url, json=None, timeout=None):
+            if url == "http://localhost:8001/extract":
+                return type(
+                    "Response",
+                    (),
+                    {
+                        "status_code": 200,
+                        "json": lambda self: {
+                            "trips": [{"title": "Paris Trip", "location": "Paris", "start_date": "2026-11-10", "end_date": "2026-11-15", "status": "upcoming"}],
+                            "bookings": [{"booking_type": "flight", "provider_name": "Air France", "confirmation_number": "AF123", "origin": "New York", "destination": "Paris", "departure_at": "2026-11-10T08:00:00Z", "arrival_at": "2026-11-10T20:00:00Z", "currency": "USD", "total_amount": 850.0, "status": "confirmed", "confidence_score": 0.98}],
+                            "notes": "flight confirmed",
+                        },
+                    },
+                )()
+            if url == "http://localhost:8001/index-relevant-messages":
+                return type(
+                    "Response",
+                    (),
+                    {"status_code": 200, "json": lambda self: {"status": "ok", "indexed": {"indexed_count": 2}}},
+                )()
+            return type("Response", (), {"status_code": 200, "json": lambda self: {}})()
+
         mock_get.side_effect = fake_get
+        mock_post.side_effect = fake_post
 
         self.client.force_authenticate(user=self.user)
         response = self.client.get("/api/gmail/messages/")
@@ -171,3 +195,26 @@ class AuthFlowTests(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertEqual(len(response.data["messages"]), 2)
         self.assertEqual(response.data["messages"][0]["id"], "msg-1")
+        self.assertEqual(mock_post.call_count, 2)
+        self.assertEqual(mock_post.call_args_list[0].args[0], "http://localhost:8001/extract")
+        self.assertEqual(mock_post.call_args_list[1].args[0], "http://localhost:8001/index-relevant-messages")
+
+    @patch("core.views.requests.post")
+    def test_assistant_search_calls_extraction_service(self, mock_post):
+        mock_post.return_value.status_code = 200
+        mock_post.return_value.json.return_value = {
+            "answer": "Your flight to Paris is scheduled for 2026-11-10.",
+            "matches": [{"type": "booking", "id": 1}],
+        }
+
+        self.client.force_authenticate(user=self.user)
+        response = self.client.post(
+            "/api/assistant/search/",
+            {"query": "When is my Paris flight?"},
+            format="json",
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.data["answer"], "Your flight to Paris is scheduled for 2026-11-10.")
+        self.assertIn("matches", response.data)
+        mock_post.assert_called_once()

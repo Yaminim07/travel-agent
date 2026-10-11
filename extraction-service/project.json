@@ -4,7 +4,7 @@
     "install": {
       "executor": "nx:run-commands",
       "options": {
-        "command": "cd extraction-service && python3 -m pip install fastapi uvicorn pydantic python-dotenv httpx openai google-generativeai",
+        "command": "cd extraction-service && python3 -m pip install fastapi uvicorn pydantic python-dotenv httpx openai google-generativeai pinecone",
         "cwd": "./"
       }
     },

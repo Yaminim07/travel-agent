@@ -35,6 +35,16 @@ export function DashboardPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [menuOpen, setMenuOpen] = useState(false);
+  const [assistantOpen, setAssistantOpen] = useState(false);
+  const [assistantInput, setAssistantInput] = useState('');
+  const [assistantLoading, setAssistantLoading] = useState(false);
+  const [assistantMessages, setAssistantMessages] = useState([
+    {
+      id: 'assistant-welcome',
+      role: 'assistant',
+      text: 'Hi! Ask me about your flights, hotels, or upcoming trip plans.',
+    },
+  ]);
   const userEmail = localStorage.getItem('userEmail') || 'User';
 
   useEffect(() => {
@@ -74,6 +84,69 @@ export function DashboardPage() {
     } finally {
       clearAuthSession();
       navigate('/login', { replace: true });
+    }
+  };
+
+  const handleAssistantSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+
+    const trimmed = assistantInput.trim();
+    if (!trimmed || assistantLoading) {
+      return;
+    }
+
+    const userMessage = {
+      id: `user-${Date.now()}`,
+      role: 'user',
+      text: trimmed,
+    };
+
+    setAssistantMessages((current) => [...current, userMessage]);
+    setAssistantInput('');
+    setAssistantLoading(true);
+
+    try {
+      const accessToken = localStorage.getItem('accessToken');
+      if (!accessToken || isJwtExpired(accessToken)) {
+        clearAuthSession();
+        navigate('/login', { replace: true });
+        return;
+      }
+
+      const response = await fetch(`${API_BASE_URL}/assistant/search/`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${accessToken}`,
+        },
+        body: JSON.stringify({ query: trimmed }),
+      });
+
+      const payload = await response.json().catch(() => ({}));
+      if (!response.ok) {
+        throw new Error(payload?.detail || 'Assistant search failed.');
+      }
+
+      const answer = payload?.answer || 'I could not find a clear answer for that search.';
+      setAssistantMessages((current) => [
+        ...current,
+        {
+          id: `assistant-${Date.now()}`,
+          role: 'assistant',
+          text: answer,
+        },
+      ]);
+    } catch (err) {
+      setAssistantMessages((current) => [
+        ...current,
+        {
+          id: `assistant-error-${Date.now()}`,
+          role: 'assistant',
+          text: err instanceof Error ? err.message : 'I could not search your bookings right now.',
+        },
+      ]);
+    } finally {
+      setAssistantLoading(false);
     }
   };
 
@@ -333,6 +406,53 @@ export function DashboardPage() {
             </div>
           </div>
         </main>
+      </div>
+
+      <div className={`assistant-fab ${assistantOpen ? 'expanded' : ''}`}>
+        {!assistantOpen ? (
+          <button
+            type="button"
+            className="ask-assistant-button"
+            aria-label="Ask travel assistant"
+            onClick={() => setAssistantOpen(true)}
+          >
+            ✦
+          </button>
+        ) : (
+          <div className="assistant-widget">
+            <div className="assistant-header">
+              <div>
+                <div className="assistant-title">Travel AI</div>
+                <div className="assistant-subtitle">Ask about trips and bookings</div>
+              </div>
+              <button type="button" className="assistant-close" aria-label="Close assistant" onClick={() => setAssistantOpen(false)}>
+                ×
+              </button>
+            </div>
+
+            <div className="assistant-messages">
+              {assistantMessages.map((message) => (
+                <div key={message.id} className={`assistant-message ${message.role}`}>
+                  {message.text}
+                </div>
+              ))}
+            </div>
+
+            <form className="assistant-compose" onSubmit={handleAssistantSubmit}>
+              <input
+                type="text"
+                value={assistantInput}
+                onChange={(event) => setAssistantInput(event.target.value)}
+                placeholder={assistantLoading ? 'Searching...' : 'Ask about your booking...'}
+                aria-label="Ask about your booking"
+                disabled={assistantLoading}
+              />
+              <button type="submit" disabled={assistantLoading}>
+                {assistantLoading ? '…' : 'Send'}
+              </button>
+            </form>
+          </div>
+        )}
       </div>
     </div>
   );

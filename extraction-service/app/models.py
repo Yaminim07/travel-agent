@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from typing import List, Optional
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, ConfigDict, Field
 
 
 class EmailMessage(BaseModel):
@@ -24,6 +24,8 @@ class ExtractionInput(BaseModel):
 
 
 class BookingExtraction(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
     booking_type: str = Field(..., description="flight, hotel, train, bus")
     provider_name: str = ""
     confirmation_number: str = ""
@@ -40,6 +42,8 @@ class BookingExtraction(BaseModel):
 
 
 class TripExtraction(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
     title: str = ""
     location: str = ""
     start_date: Optional[str] = None
@@ -48,6 +52,8 @@ class TripExtraction(BaseModel):
 
 
 class ExtractionResult(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
     trips: List[TripExtraction] = Field(default_factory=list)
     bookings: List[BookingExtraction] = Field(default_factory=list)
     notes: str = ""

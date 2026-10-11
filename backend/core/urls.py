@@ -3,6 +3,7 @@ from rest_framework.routers import DefaultRouter
 
 from .auth_views import google_callback, google_connect, login_view, logout_view, me_view
 from .views import (
+    AssistantSearchViewSet,
     BookingViewSet,
     ExtractionJobViewSet,
     GmailMessageViewSet,
@@ -28,5 +29,6 @@ urlpatterns = [
     path("auth/logout/", logout_view, name="logout"),
     path("auth/me/", me_view, name="me"),
     path("gmail/messages/", GmailMessageViewSet.as_view({"get": "messages"}), name="gmail-messages"),
+    path("assistant/search/", AssistantSearchViewSet.as_view({"post": "search"}), name="assistant-search"),
     path("", include(router.urls)),
 ]

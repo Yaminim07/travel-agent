@@ -17,6 +17,8 @@ GOOGLE_REDIRECT_URI = os.environ.get(
     "http://localhost:8000/api/auth/google/callback/",
 )
 FRONTEND_URL = os.environ.get("FRONTEND_URL", "http://localhost:5173")
+EXTRACTION_SERVICE_URL = os.environ.get("EXTRACTION_SERVICE_URL", "http://localhost:8001").rstrip("/")
+EXTRACTION_SERVICE_TIMEOUT = int(os.environ.get("EXTRACTION_SERVICE_TIMEOUT", "120"))
 
 INSTALLED_APPS = [
     "django.contrib.admin",
