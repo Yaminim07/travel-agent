@@ -199,13 +199,21 @@ class AuthFlowTests(TestCase):
         self.assertEqual(mock_post.call_args_list[0].args[0], "http://localhost:8001/extract")
         self.assertEqual(mock_post.call_args_list[1].args[0], "http://localhost:8001/index-relevant-messages")
 
-    @patch("core.views.requests.post")
-    def test_assistant_search_calls_extraction_service(self, mock_post):
-        mock_post.return_value.status_code = 200
-        mock_post.return_value.json.return_value = {
-            "answer": "Your flight to Paris is scheduled for 2026-11-10.",
-            "matches": [{"type": "booking", "id": 1}],
+    @patch("core.assistant.clients.requests.post")
+    def test_assistant_search_routes_through_extraction_service(self, mock_post):
+        responses = {
+            "/route": {"route": "SEMANTIC", "entity": "any", "semantic_query": "Paris flight"},
+            "/semantic-search": {"matches": [{"id": "m1", "metadata": {"subject": "Paris", "body": "Flight 2026-11-10"}}]},
+            "/answer": {"answer": "Your flight to Paris is scheduled for 2026-11-10."},
         }
+
+        def fake_post(url, json=None, timeout=None):
+            response = type("R", (), {})()
+            response.raise_for_status = lambda: None
+            response.json = lambda: responses[url.replace("http://localhost:8001", "")]
+            return response
+
+        mock_post.side_effect = fake_post
 
         self.client.force_authenticate(user=self.user)
         response = self.client.post(
@@ -216,5 +224,7 @@ class AuthFlowTests(TestCase):
 
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.data["answer"], "Your flight to Paris is scheduled for 2026-11-10.")
-        self.assertIn("matches", response.data)
-        mock_post.assert_called_once()
+        self.assertEqual(response.data["route"], "SEMANTIC")
+        self.assertEqual(len(response.data["matches"]), 1)
+        semantic_call = [c for c in mock_post.call_args_list if c.args[0].endswith("/semantic-search")][0]
+        self.assertEqual(semantic_call.kwargs["json"]["user_email"], self.user.email)

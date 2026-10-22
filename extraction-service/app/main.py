@@ -2,16 +2,18 @@ from __future__ import annotations
 
 import json
 import logging
+from datetime import date
 from typing import Any
 
 from fastapi import FastAPI, HTTPException
 from pydantic import ValidationError
 
 from .config import get_settings
-from .context import SYSTEM_CONTEXT
 from .models import ExtractionInput, ExtractionResult
 from .schema import TRAVEL_EXTRACTION_SCHEMA
-from .search_prompt import SEARCH_PROMPT
+from .prompts import ANSWER_PROMPT, DESTINATION_PROMPT, SYSTEM_CONTEXT
+from .query_router import classify_query
+from .web_search import web_search
 from .vector_store import search_relevant_travel_documents, upsert_relevant_travel_documents
 
 try:
@@ -135,71 +137,97 @@ def extract(payload: ExtractionInput) -> ExtractionResult:
         raise HTTPException(status_code=502, detail=f"Extraction failed: {str(exc)}") from exc
 
 
-def _build_search_answer(question: str, matches: list[dict[str, Any]]) -> str:
-    if not matches:
-        return f"I couldn’t find a matching travel record for: {question}. Try asking about a specific airline, hotel, or trip name."
-
-    top_match = matches[0]
-    metadata = top_match.get("metadata", {}) or {}
-    subject = metadata.get("subject") or "your travel booking"
-    message_date = metadata.get("date") or "an unknown date"
-    travel_status = metadata.get("travel_status") or "confirmed"
-    trip_count = metadata.get("trip_count")
-    booking_count = metadata.get("booking_count")
-
-    intro = f"I found a likely match for that: {subject}."
-    context = f"It was recorded on {message_date} and looks {travel_status}."
-
-    if trip_count is not None or booking_count is not None:
-        summary = (
-            f"This record references {trip_count if trip_count is not None else 0} trip(s) "
-            f"and {booking_count if booking_count is not None else 0} booking(s)."
-        )
-    else:
-        summary = "It looks like a relevant travel reminder from your inbox."
-
-    if len(matches) > 1:
-        follow_up = f"I also found {len(matches) - 1} related travel records you might want to review."
-        return f"{intro} {context} {summary} {follow_up}"
-
-    return f"{intro} {context} {summary}"
-
-
-def _generate_gemini_search_answer(question: str, matches: list[dict[str, Any]]) -> str:
+def _generate_text(prompt: str, json_mode: bool = False) -> str:
+    """Single-prompt completion on the configured provider. Raises on any failure."""
     settings = get_settings()
-    if settings.llm_provider != "gemini":
-        return _build_search_answer(question, matches)
-    if not settings.gemini_api_key or genai is None:
-        return _build_search_answer(question, matches)
-
-    try:
+    if settings.llm_provider == "gemini":
+        if not settings.gemini_api_key or genai is None:
+            raise RuntimeError("Gemini is not configured.")
         genai.configure(api_key=settings.gemini_api_key)
         model = genai.GenerativeModel(settings.gemini_model)
-        evidence = json.dumps(matches[:5], ensure_ascii=False)
-        prompt = SEARCH_PROMPT.format(question=question, evidence=evidence)
-        response = model.generate_content(prompt)
-        answer = getattr(response, "text", None)
-        if answer and str(answer).strip():
-            return str(answer).strip()
-    except Exception:
-        logger.exception("[SEARCH] Gemini answer generation failed; falling back to metadata summary.")
+        config = {"temperature": 0.1}
+        if json_mode:
+            config["response_mime_type"] = "application/json"
+        text = model.generate_content(prompt, generation_config=config).text
+    else:
+        if not settings.openai_api_key or OpenAI is None:
+            raise RuntimeError("OpenAI is not configured.")
+        kwargs: dict[str, Any] = {"response_format": {"type": "json_object"}} if json_mode else {}
+        completion = OpenAI(api_key=settings.openai_api_key).chat.completions.create(
+            model=settings.openai_model,
+            temperature=0.1,
+            messages=[{"role": "user", "content": prompt}],
+            **kwargs,
+        )
+        text = completion.choices[0].message.content
+    if not text or not str(text).strip():
+        raise RuntimeError("Model returned an empty response.")
+    return str(text).strip()
 
-    return _build_search_answer(question, matches)
 
-
-@app.post("/search")
-def search(query: dict[str, Any]) -> dict[str, Any]:
+@app.post("/route")
+def route(query: dict[str, Any]) -> dict[str, Any]:
     question = str((query or {}).get("query", "")).strip()
     if not question:
         raise HTTPException(status_code=400, detail="A search query is required.")
+    return classify_query(question, date.today(), llm=lambda prompt: _generate_text(prompt, json_mode=True))
 
-    matches = search_relevant_travel_documents(question, top_k=5)
-    answer = _generate_gemini_search_answer(question, matches)
-    return {
-        "answer": answer,
-        "matches": matches,
-        "match_count": len(matches),
-    }
+
+@app.post("/semantic-search")
+def semantic_search(query: dict[str, Any]) -> dict[str, Any]:
+    question = str((query or {}).get("query", "")).strip()
+    user_email = str((query or {}).get("user_email", "")).strip()
+    if not question or not user_email:
+        raise HTTPException(status_code=400, detail="query and user_email are required.")
+
+    message_ids = [str(i) for i in (query.get("message_ids") or []) if i]
+    top_k = max(1, min(int(query.get("top_k") or 5), 10))
+    matches = search_relevant_travel_documents(question, top_k=top_k, user_email=user_email, message_ids=message_ids or None)
+    logger.info("[SEMANTIC] query=%r message_ids=%s matches=%s", question, len(message_ids), len(matches))
+    return {"matches": matches, "match_count": len(matches)}
+
+
+@app.post("/web-search")
+def web_search_endpoint(query: dict[str, Any]) -> dict[str, Any]:
+    question = str((query or {}).get("query", "")).strip()
+    if not question:
+        raise HTTPException(status_code=400, detail="A search query is required.")
+    results = web_search(question, num=int(query.get("num") or 5))
+    return {"results": results, "result_count": len(results)}
+
+
+@app.post("/extract-destination")
+def extract_destination(payload: dict[str, Any]) -> dict[str, Any]:
+    body = str((payload or {}).get("body", "")).strip()
+    if not body:
+        raise HTTPException(status_code=400, detail="An email body is required.")
+    prompt = DESTINATION_PROMPT.format(subject=str(payload.get("subject", ""))[:300], body=body[:3000])
+    try:
+        destination = str(json.loads(_generate_text(prompt, json_mode=True)).get("destination") or "").strip()
+    except Exception as exc:
+        logger.exception("[DESTINATION] Extraction failed.")
+        raise HTTPException(status_code=502, detail=f"Destination extraction failed: {str(exc)}") from exc
+    return {"destination": destination[:100]}
+
+
+@app.post("/answer")
+def answer(payload: dict[str, Any]) -> dict[str, Any]:
+    question = str((payload or {}).get("question", "")).strip()
+    if not question:
+        raise HTTPException(status_code=400, detail="A question is required.")
+
+    prompt = ANSWER_PROMPT.format(
+        today=date.today().isoformat(),
+        question=question,
+        structured=json.dumps(payload.get("structured") or {}, ensure_ascii=False, default=str),
+        emails=json.dumps(payload.get("emails") or [], ensure_ascii=False, default=str),
+        web=json.dumps(payload.get("web") or [], ensure_ascii=False, default=str),
+    )
+    try:
+        return {"answer": _generate_text(prompt)}
+    except Exception as exc:
+        logger.exception("[ANSWER] Generation failed.")
+        raise HTTPException(status_code=502, detail=f"Answer generation failed: {str(exc)}") from exc
 
 
 @app.post("/index-relevant-messages")
@@ -219,7 +247,7 @@ def index_relevant_messages(payload: dict[str, Any]) -> dict[str, Any]:
         logger.exception("[INDEX] Invalid extraction payload: %s", exc)
         raise HTTPException(status_code=400, detail=f"Invalid extraction payload: {str(exc)}") from exc
 
-    indexed = upsert_relevant_travel_documents(extraction_result, messages)
+    indexed = upsert_relevant_travel_documents(extraction_result, messages, str(payload.get("user_email", "")))
     logger.info("[INDEX] Pinecone indexing result=%s", indexed)
     return {
         "status": "ok",

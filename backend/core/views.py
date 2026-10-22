@@ -11,7 +11,9 @@ from rest_framework.decorators import action
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
+from .assistant.service import answer_question
 from .models import Booking, ExtractionJob, GoogleAccount, ProcessedEmail, Trip, User
+from .persistence import save_extraction
 from .serializers import (
     BookingSerializer,
     ExtractionJobSerializer,
@@ -168,7 +170,7 @@ class GmailMessageViewSet(viewsets.ViewSet):
         }
 
     @staticmethod
-    def _trigger_extraction_pipeline(messages, user_email):
+    def _trigger_extraction_pipeline(messages, user_email, user=None, google_account=None):
         if not messages:
             logger.info("[GMAIL_PIPELINE] No messages to process for extraction.")
             return {"extraction": None, "indexing": None}
@@ -219,6 +221,13 @@ class GmailMessageViewSet(viewsets.ViewSet):
                 if extraction_result.get("notes"):
                     aggregated_notes.append(str(extraction_result.get("notes")))
 
+                if user is not None:
+                    try:
+                        saved = save_extraction(user, google_account, extraction_result)
+                        logger.info("[GMAIL_PIPELINE] Persisted batch %s: %s", batch_index, saved)
+                    except Exception:
+                        logger.exception("[GMAIL_PIPELINE] Failed to persist batch %s", batch_index)
+
                 logger.info(
                     "[GMAIL_PIPELINE] Extraction batch %s returned %s trip(s) and %s booking(s)",
                     batch_index,
@@ -230,7 +239,7 @@ class GmailMessageViewSet(viewsets.ViewSet):
                     logger.info("[GMAIL_PIPELINE] Calling Pinecone index endpoint: %s/index-relevant-messages", base_url)
                     indexing_response = requests.post(
                         f"{base_url}/index-relevant-messages",
-                        json={"messages": batch, "result": extraction_result},
+                        json={"messages": batch, "result": extraction_result, "user_email": user_email},
                         timeout=request_timeout,
                     )
                     logger.info("[GMAIL_PIPELINE] Index response status=%s", indexing_response.status_code)
@@ -290,7 +299,19 @@ class GmailMessageViewSet(viewsets.ViewSet):
                     fetched_messages.append(message)
 
         logger.info("[GMAIL_SYNC] Gmail fetch completed. Fetched %s message(s).", len(fetched_messages))
-        extraction_pipeline_result = self._trigger_extraction_pipeline(fetched_messages, request.user.email)
+        for message in fetched_messages:
+            body = message.get("body") or ""
+            logger.info(
+                "[GMAIL_SYNC] id=%s date=%r subject=%r body_chars=%s body_preview=%r",
+                message.get("id"),
+                message.get("date"),
+                message.get("subject"),
+                len(body),
+                body[:300],
+            )
+        extraction_pipeline_result = self._trigger_extraction_pipeline(
+            fetched_messages, request.user.email, user=request.user, google_account=google_account
+        )
 
         elapsed_seconds = round(time.time() - started_at, 3)
         logger.info("[GMAIL_SYNC] Gmail sync finished in %ss", elapsed_seconds)
@@ -343,31 +364,12 @@ class AssistantSearchViewSet(viewsets.ViewSet):
         if not query:
             return Response({"detail": "A search query is required."}, status=status.HTTP_400_BAD_REQUEST)
 
-        extraction_service_url = f"{settings.EXTRACTION_SERVICE_URL.rstrip('/')}/search"
-        request_timeout = getattr(settings, "EXTRACTION_SERVICE_TIMEOUT", 120)
-        try:
-            response = requests.post(
-                extraction_service_url,
-                json={"query": query, "user_email": request.user.email},
-                timeout=request_timeout,
-            )
-        except requests.RequestException as exc:
-            return Response(
-                {"detail": f"Assistant search failed: {str(exc)}"},
-                status=status.HTTP_502_BAD_GATEWAY,
-            )
-
-        if response.status_code != 200:
-            return Response(
-                {"detail": "Extraction service rejected the search request."},
-                status=status.HTTP_502_BAD_GATEWAY,
-            )
-
-        payload = response.json()
+        result = answer_question(request.user, query)
         return Response(
             {
-                "answer": payload.get("answer", "I could not find a clear answer for that search."),
-                "matches": payload.get("matches", []),
+                "answer": result["answer"],
+                "matches": result["matches"],
+                "route": result["route"],
                 "query": query,
             },
             status=status.HTTP_200_OK,

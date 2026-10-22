@@ -10,6 +10,8 @@ from .models import ExtractionResult
 
 logger = logging.getLogger("travel_agent.vector_store")
 
+EMBED_MAX_CHARS = 8000
+
 try:
     from pinecone import Pinecone
 except Exception:  # pragma: no cover - optional dependency path
@@ -21,41 +23,22 @@ except Exception:  # pragma: no cover - optional dependency path
     genai = None
 
 
-def _stable_float_vector(text: str, vector_size: Optional[int] = None) -> List[float]:
-    """Deterministic placeholder embedding for local/dev usage before Pinecone is configured.
-
-    Matches the configured Pinecone index dimension so the placeholder vectors remain valid.
-    """
-    if vector_size is None:
-        vector_size = get_settings().pinecone_vector_dimension
-
-    digest = hashlib.sha256(text.encode("utf-8")).hexdigest()
-    values: List[float] = []
-    for i in range(vector_size):
-        start = (i * 2) % len(digest)
-        end = (i * 2 + 2) % len(digest)
-        if end == 0:
-            end = len(digest)
-        byte_val = int(digest[start:end], 16)
-        values.append((byte_val / 255.0) * 2.0 - 1.0)
-    return values
-
-
 def _gemini_embedding(text: str, task_type: str) -> Optional[List[float]]:
     """Generate a real embedding for ``text`` using the Gemini embedding model.
 
     ``task_type`` should be ``"retrieval_document"`` for content being indexed and
     ``"retrieval_query"`` for search queries so the vectors live in the same
     retrieval space. Returns ``None`` when embeddings are not configured, the
-    library is missing, or the request fails so the caller can fall back to the
-    deterministic placeholder vector and keep indexing/search working locally.
+    library is missing, or the request fails. Callers must treat ``None`` as
+    "no embedding" and skip the document/search: hash-based placeholder vectors
+    carry no meaning and silently break retrieval.
     """
     settings = get_settings()
     if genai is None:
-        logger.warning("[EMBED] google-generativeai library is not installed; using placeholder embedding.")
+        logger.warning("[EMBED] google-generativeai library is not installed; embeddings unavailable.")
         return None
     if not settings.gemini_api_key:
-        logger.warning("[EMBED] GEMINI_API_KEY is not set; using placeholder embedding.")
+        logger.warning("[EMBED] GEMINI_API_KEY is not set; embeddings unavailable.")
         return None
 
     model_name = settings.gemini_embedding_model
@@ -87,6 +70,9 @@ def _gemini_embedding(text: str, task_type: str) -> Optional[List[float]]:
             continue
 
         values = [float(v) for v in embedding]
+        norm = sum(v * v for v in values) ** 0.5
+        if norm:  # truncated (output_dimensionality) embeddings are not unit length
+            values = [v / norm for v in values]
         if len(values) != expected_dim:
             logger.warning(
                 "[EMBED] Embedding dimension mismatch: got %s, expected %s for model=%s.",
@@ -98,29 +84,32 @@ def _gemini_embedding(text: str, task_type: str) -> Optional[List[float]]:
         return values
 
     logger.error(
-        "[EMBED] All Gemini embedding attempts failed for model=%s task_type=%s; using placeholder embedding.",
+        "[EMBED] All Gemini embedding attempts failed for model=%s task_type=%s.",
         model_name,
         task_type,
     )
     return None
 
 
-def _embed_text(text: str, task_type: str = "retrieval_document") -> List[float]:
-    """Return a real Gemini embedding when available, otherwise a placeholder vector.
-
-    This preserves graceful degradation for local/dev setups where embeddings are
-    not configured, while producing genuine semantic vectors whenever possible.
-    """
-    embedding = _gemini_embedding(text, task_type=task_type)
-    if embedding is not None:
-        return embedding
-
-    logger.info("[EMBED] Using placeholder embedding for text (%s chars).", len(text or ""))
-    return _stable_float_vector(text)
+def _embed_text(text: str, task_type: str = "retrieval_document") -> Optional[List[float]]:
+    """Return a real Gemini embedding, or ``None`` when one cannot be produced."""
+    return _gemini_embedding(text[:EMBED_MAX_CHARS], task_type=task_type)
 
 
-def _build_relevant_document(message: Dict[str, Any], extraction_result: ExtractionResult) -> Optional[Dict[str, Any]]:
-    if not extraction_result.trips and not extraction_result.bookings:
+def _items_for_message(items: List[Any], message_id: str) -> List[Any]:
+    """Items extracted from ``message_id``; fall back to the whole batch if none carry a source id."""
+    if not any(getattr(item, "source_message_id", "") for item in items):
+        return items
+    return [item for item in items if getattr(item, "source_message_id", "") == message_id]
+
+
+def _build_relevant_document(
+    message: Dict[str, Any], extraction_result: ExtractionResult, user_email: str = ""
+) -> Optional[Dict[str, Any]]:
+    message_id = str(message.get("id") or "")
+    trips = _items_for_message(extraction_result.trips, message_id)
+    bookings = _items_for_message(extraction_result.bookings, message_id)
+    if not trips and not bookings:
         return None
 
     raw_text = (message.get("body") or "")
@@ -129,21 +118,26 @@ def _build_relevant_document(message: Dict[str, Any], extraction_result: Extract
 
     body_text = raw_text[:20000]
     payload = {
-        "id": str(message.get("id") or hashlib.sha256(json.dumps(message, sort_keys=True).encode("utf-8")).hexdigest()),
+        "id": message_id or hashlib.sha256(json.dumps(message, sort_keys=True).encode("utf-8")).hexdigest(),
         "text": raw_text,
         "metadata": {
-            "message_id": message.get("id", ""),
+            "user_email": user_email,
+            "message_id": message_id,
             "thread_id": message.get("threadId", ""),
             "subject": message.get("subject", ""),
-            "from": message.get("from_email", ""),
+            "from": message.get("from_email") or message.get("from", ""),
             "date": message.get("date", ""),
-            "trip_count": len(extraction_result.trips),
-            "booking_count": len(extraction_result.bookings),
-            "travel_status": extraction_result.trips[0].status if extraction_result.trips else "unknown",
+            "trip_count": len(trips),
+            "booking_count": len(bookings),
+            "travel_status": trips[0].status if trips else (bookings[0].status if bookings else "unknown"),
             "body": body_text,
         },
     }
-    payload["values"] = _embed_text(payload["text"], task_type="retrieval_document")
+    values = _embed_text(payload["text"], task_type="retrieval_document")
+    if values is None:
+        logger.error("[PINECONE] Skipping message %s: no real embedding available.", payload["id"])
+        return None
+    payload["values"] = values
     return payload
 
 
@@ -166,7 +160,9 @@ def get_pinecone_index():
     return client.Index(settings.pinecone_index_name)
 
 
-def upsert_relevant_travel_documents(extraction_result: ExtractionResult, raw_messages: List[Dict[str, Any]]) -> Dict[str, Any]:
+def upsert_relevant_travel_documents(
+    extraction_result: ExtractionResult, raw_messages: List[Dict[str, Any]], user_email: str = ""
+) -> Dict[str, Any]:
     logger.info("[PINECONE] Attempting to index %s message(s) for extraction result with %s trip(s) and %s booking(s)", len(raw_messages), len(extraction_result.trips), len(extraction_result.bookings))
     if not extraction_result.trips and not extraction_result.bookings:
         logger.warning("[PINECONE] No extracted trip or booking data present; skipping Pinecone write.")
@@ -178,7 +174,7 @@ def upsert_relevant_travel_documents(extraction_result: ExtractionResult, raw_me
 
     documents = []
     for message in raw_messages:
-        document = _build_relevant_document(message, extraction_result)
+        document = _build_relevant_document(message, extraction_result, user_email)
         if document:
             documents.append(document)
 
@@ -223,10 +219,18 @@ def upsert_relevant_travel_documents(extraction_result: ExtractionResult, raw_me
         }
 
 
-def search_relevant_travel_documents(query: str, top_k: int = 5) -> List[Dict[str, Any]]:
+def search_relevant_travel_documents(
+    query: str,
+    top_k: int = 5,
+    user_email: str = "",
+    message_ids: Optional[List[str]] = None,
+) -> List[Dict[str, Any]]:
+    """Semantic search scoped to ``user_email`` and, optionally, to specific Gmail message ids."""
     if not query or not query.strip():
         return []
-
+    if not user_email:
+        logger.warning("[SEARCH] Refusing unscoped search: user_email is required.")
+        return []
     if not is_pinecone_configured():
         return []
 
@@ -236,11 +240,20 @@ def search_relevant_travel_documents(query: str, top_k: int = 5) -> List[Dict[st
             return []
 
         vector = _embed_text(query.strip(), task_type="retrieval_query")
+        if vector is None:
+            logger.error("[SEARCH] Query embedding unavailable; returning no matches.")
+            return []
+
+        metadata_filter: Dict[str, Any] = {"user_email": {"$eq": user_email}}
+        if message_ids:
+            metadata_filter["message_id"] = {"$in": list(message_ids)}
+
         results = index.query(
             vector=vector,
             top_k=top_k,
             include_metadata=True,
             namespace=get_settings().pinecone_namespace,
+            filter=metadata_filter,
         )
 
         if isinstance(results, dict):
@@ -265,4 +278,5 @@ def search_relevant_travel_documents(query: str, top_k: int = 5) -> List[Dict[st
 
         return normalized_matches
     except Exception:  # pragma: no cover - external service path
+        logger.exception("[SEARCH] Pinecone query failed.")
         return []

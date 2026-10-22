@@ -26,7 +26,8 @@ class ExtractionInput(BaseModel):
 class BookingExtraction(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
-    booking_type: str = Field(..., description="flight, hotel, train, bus")
+    booking_type: str = Field(..., description="flight, hotel, train, bus, activity")
+    source_message_id: str = ""
     provider_name: str = ""
     confirmation_number: str = ""
     origin: str = ""
@@ -46,6 +47,7 @@ class TripExtraction(BaseModel):
 
     title: str = ""
     location: str = ""
+    source_message_id: str = ""
     start_date: Optional[str] = None
     end_date: Optional[str] = None
     status: str = "upcoming"

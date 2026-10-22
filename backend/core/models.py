@@ -122,6 +122,7 @@ class Booking(models.Model):
         ("hotel", "hotel"),
         ("train", "train"),
         ("bus", "bus"),
+        ("activity", "activity"),
     ]
 
     trip = models.ForeignKey(Trip, on_delete=models.CASCADE, related_name="bookings")
