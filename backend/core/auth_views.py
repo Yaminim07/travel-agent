@@ -2,8 +2,13 @@ from urllib.parse import urlencode
 
 import requests
 from django.conf import settings
-from django.contrib.auth import authenticate, get_user_model
+from django.contrib.auth import authenticate, get_user_model, password_validation
+from django.contrib.auth.tokens import default_token_generator
+from django.core.exceptions import ValidationError as DjangoValidationError
+from django.core.mail import send_mail
 from django.shortcuts import redirect
+from django.utils.encoding import force_bytes, force_str
+from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
 from rest_framework import status
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import AllowAny, IsAuthenticated
@@ -11,13 +16,120 @@ from rest_framework.response import Response
 from rest_framework_simplejwt.tokens import RefreshToken
 
 from .models import GoogleAccount
-from .serializers import UserSerializer
+from .serializers import (
+    LoginSerializer,
+    PasswordResetConfirmSerializer,
+    PasswordResetRequestSerializer,
+    SignupSerializer,
+    UserSerializer,
+)
+
+
+def _token_response(user, response_status=status.HTTP_200_OK):
+    refresh = RefreshToken.for_user(user)
+    return Response(
+        {
+            "access": str(refresh.access_token),
+            "refresh": str(refresh),
+            "user": UserSerializer(user).data,
+        },
+        status=response_status,
+    )
 
 
 @api_view(["POST"])
 @permission_classes([AllowAny])
 def login_view(request):
-    return Response({"detail": "Use Google SSO login only."}, status=status.HTTP_410_GONE)
+    serializer = LoginSerializer(data=request.data)
+    serializer.is_valid(raise_exception=True)
+    user = authenticate(
+        request,
+        username=serializer.validated_data["email"],
+        password=serializer.validated_data["password"],
+    )
+    if user is None:
+        return Response(
+            {"detail": "Invalid email or password."},
+            status=status.HTTP_401_UNAUTHORIZED,
+        )
+    return _token_response(user)
+
+
+@api_view(["POST"])
+@permission_classes([AllowAny])
+def signup_view(request):
+    serializer = SignupSerializer(data=request.data)
+    serializer.is_valid(raise_exception=True)
+    user = serializer.save()
+    return _token_response(user, status.HTTP_201_CREATED)
+
+
+@api_view(["POST"])
+@permission_classes([AllowAny])
+def password_reset_request_view(request):
+    serializer = PasswordResetRequestSerializer(data=request.data)
+    serializer.is_valid(raise_exception=True)
+
+    user_model = get_user_model()
+    user = user_model.objects.filter(
+        email__iexact=serializer.validated_data["email"],
+    ).first()
+    if user and user.has_usable_password():
+        uid = urlsafe_base64_encode(force_bytes(user.pk))
+        token = default_token_generator.make_token(user)
+        reset_url = (
+            f"{settings.FRONTEND_URL.rstrip('/')}/reset-password/confirm?"
+            f"{urlencode({'uid': uid, 'token': token})}"
+        )
+        send_mail(
+            "Reset your Travel Agent password",
+            f"Use the link below to choose a new password:\n\n{reset_url}\n\n"
+            "If you did not request this change, you can ignore this email.",
+            settings.DEFAULT_FROM_EMAIL,
+            [user.email],
+            fail_silently=False,
+        )
+
+    return Response(
+        {"detail": "If an account exists for that email, password reset instructions have been sent."},
+        status=status.HTTP_200_OK,
+    )
+
+
+@api_view(["POST"])
+@permission_classes([AllowAny])
+def password_reset_confirm_view(request):
+    serializer = PasswordResetConfirmSerializer(data=request.data)
+    serializer.is_valid(raise_exception=True)
+    user_model = get_user_model()
+
+    try:
+        uid = force_str(urlsafe_base64_decode(serializer.validated_data["uid"]))
+        user = user_model._default_manager.get(pk=uid)
+    except (TypeError, ValueError, OverflowError, user_model.DoesNotExist):
+        return Response(
+            {"detail": "This password reset link is invalid or has expired."},
+            status=status.HTTP_400_BAD_REQUEST,
+        )
+
+    if not default_token_generator.check_token(user, serializer.validated_data["token"]):
+        return Response(
+            {"detail": "This password reset link is invalid or has expired."},
+            status=status.HTTP_400_BAD_REQUEST,
+        )
+
+    password = serializer.validated_data["password"]
+    try:
+        password_validation.validate_password(password, user)
+    except DjangoValidationError as error:
+        return Response({"password": error.messages}, status=status.HTTP_400_BAD_REQUEST)
+
+    user.set_password(password)
+    user.save(update_fields=["password"])
+    return Response(
+        {"detail": "Your password has been reset. You can now sign in."},
+        status=status.HTTP_200_OK,
+    )
 
 
 @api_view(["GET"])
