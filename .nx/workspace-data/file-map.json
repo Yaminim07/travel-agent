@@ -6,20 +6,60 @@
   "fileMap": {
     "nonProjectFiles": [
       {
-        "file": ".github/instructions/react-frontend-development.instructions.md",
-        "hash": "10441529165819228733"
+        "file": "docker-compose.yml",
+        "hash": "16489045375276879255"
       },
       {
-        "file": "agent/plans/version_1_requirement_plan.md",
-        "hash": "10115087630275472215"
+        "file": "agent/plans/backend-auth-db-endpoints-plan.md",
+        "hash": "456450790708820152"
+      },
+      {
+        "file": "design/sample.json",
+        "hash": "11182417343614590965"
+      },
+      {
+        "file": "nx.json",
+        "hash": "12085392963438580843"
       },
       {
         "file": ".gitignore",
         "hash": "10860474968270039910"
       },
       {
+        "file": "agent/plans/extraction-service-monorepo-plan.md",
+        "hash": "9229788805848976853"
+      },
+      {
+        "file": "design/LoginScreen.jpeg",
+        "hash": "2433009082121938731"
+      },
+      {
+        "file": ".github/instructions/django-backend-development.instructions.md",
+        "hash": "1266779638905729895"
+      },
+      {
+        "file": ".github/instructions/react-frontend-development.instructions.md",
+        "hash": "10441529165819228733"
+      },
+      {
         "file": "design/MyTripsDashboard.jpeg",
         "hash": "15140108727987197169"
+      },
+      {
+        "file": "package-lock.json",
+        "hash": "9027007827047413874"
+      },
+      {
+        "file": "agent/plans/version_1_requirement_plan.md",
+        "hash": "10115087630275472215"
+      },
+      {
+        "file": "README.md",
+        "hash": "9396508131776382805"
+      },
+      {
+        "file": "design/dashboard.html",
+        "hash": "16862333406155644363"
       },
       {
         "file": "package.json",
@@ -28,131 +68,13 @@
       {
         "file": "agent/plans/google-oauth-gmail-plan.md",
         "hash": "308055195771826164"
-      },
-      {
-        "file": "nx.json",
-        "hash": "12085392963438580843"
-      },
-      {
-        "file": "design/dashboard.html",
-        "hash": "16862333406155644363"
-      },
-      {
-        "file": "design/LoginScreen.jpeg",
-        "hash": "2433009082121938731"
-      },
-      {
-        "file": "agent/plans/extraction-service-monorepo-plan.md",
-        "hash": "9229788805848976853"
-      },
-      {
-        "file": "package-lock.json",
-        "hash": "9027007827047413874"
-      },
-      {
-        "file": "docker-compose.yml",
-        "hash": "16489045375276879255"
-      },
-      {
-        "file": ".github/instructions/django-backend-development.instructions.md",
-        "hash": "1266779638905729895"
-      },
-      {
-        "file": "design/sample.json",
-        "hash": "11182417343614590965"
-      },
-      {
-        "file": "README.md",
-        "hash": "9396508131776382805"
-      },
-      {
-        "file": "agent/plans/backend-auth-db-endpoints-plan.md",
-        "hash": "456450790708820152"
       }
     ],
     "projectFileMap": {
-      "backend": [
-        {
-          "file": "backend/.gitignore",
-          "hash": "12809314710469543065"
-        },
-        {
-          "file": "backend/README.md",
-          "hash": "16934280825006853186"
-        },
-        {
-          "file": "backend/config/__init__.py",
-          "hash": "3244421341483603138"
-        },
-        {
-          "file": "backend/config/settings.py",
-          "hash": "3043125323690804948"
-        },
-        {
-          "file": "backend/config/urls.py",
-          "hash": "11088671428071312896"
-        },
-        {
-          "file": "backend/config/wsgi.py",
-          "hash": "8293879425655727833"
-        },
-        {
-          "file": "backend/core/__init__.py",
-          "hash": "3244421341483603138"
-        },
-        {
-          "file": "backend/core/apps.py",
-          "hash": "6755259931864749140"
-        },
-        {
-          "file": "backend/core/auth_views.py",
-          "hash": "393322634106927813"
-        },
-        {
-          "file": "backend/core/migrations/0001_initial.py",
-          "hash": "17335905010577315562"
-        },
-        {
-          "file": "backend/core/migrations/__init__.py",
-          "hash": "3244421341483603138"
-        },
-        {
-          "file": "backend/core/models.py",
-          "hash": "10148247469136394961"
-        },
-        {
-          "file": "backend/core/serializers.py",
-          "hash": "1586069005404845433"
-        },
-        {
-          "file": "backend/core/tests/test_auth_flow.py",
-          "hash": "16559798658726591836"
-        },
-        {
-          "file": "backend/core/urls.py",
-          "hash": "14377466831969904655"
-        },
-        {
-          "file": "backend/core/views.py",
-          "hash": "9529139319536562387"
-        },
-        {
-          "file": "backend/manage.py",
-          "hash": "3099283543561205838"
-        },
-        {
-          "file": "backend/project.json",
-          "hash": "14444754108214955846"
-        },
-        {
-          "file": "backend/pyproject.toml",
-          "hash": "2678499935087244290"
-        }
-      ],
       "extraction-service": [
         {
           "file": "extraction-service/.env.example",
-          "hash": "3874468593556967864"
+          "hash": "16200424346268683389"
         },
         {
           "file": "extraction-service/app/__init__.py",
@@ -160,35 +82,67 @@
         },
         {
           "file": "extraction-service/app/config.py",
-          "hash": "13469542049517137083"
-        },
-        {
-          "file": "extraction-service/app/context.py",
-          "hash": "11117099738510571244"
+          "hash": "3243407416719724187"
         },
         {
           "file": "extraction-service/app/main.py",
-          "hash": "631235936220666211"
+          "hash": "6209023004403644987"
         },
         {
           "file": "extraction-service/app/models.py",
-          "hash": "4086511789282179227"
+          "hash": "1327098572931810707"
+        },
+        {
+          "file": "extraction-service/app/prompts/__init__.py",
+          "hash": "6473910359426776331"
+        },
+        {
+          "file": "extraction-service/app/prompts/answer_prompt.py",
+          "hash": "4845186602308731072"
+        },
+        {
+          "file": "extraction-service/app/prompts/destination_prompt.py",
+          "hash": "15988806064895206597"
+        },
+        {
+          "file": "extraction-service/app/prompts/extraction_prompt.py",
+          "hash": "7922428167976563533"
+        },
+        {
+          "file": "extraction-service/app/prompts/router_prompt.py",
+          "hash": "4440835301434480278"
+        },
+        {
+          "file": "extraction-service/app/query_router.py",
+          "hash": "9350798036277500171"
         },
         {
           "file": "extraction-service/app/schema.py",
-          "hash": "5940040721900132285"
-        },
-        {
-          "file": "extraction-service/app/search_prompt.py",
-          "hash": "4549475070712161928"
+          "hash": "5724731729634169121"
         },
         {
           "file": "extraction-service/app/vector_store.py",
-          "hash": "16736195870621755631"
+          "hash": "10894480894056167235"
+        },
+        {
+          "file": "extraction-service/app/web_search.py",
+          "hash": "553109473765450166"
         },
         {
           "file": "extraction-service/project.json",
           "hash": "17696881263119562440"
+        },
+        {
+          "file": "extraction-service/tests/__init__.py",
+          "hash": "3244421341483603138"
+        },
+        {
+          "file": "extraction-service/tests/test_query_router.py",
+          "hash": "6018008081499431005"
+        },
+        {
+          "file": "extraction-service/tests/test_web_search.py",
+          "hash": "10075738516303648504"
         }
       ],
       "frontend": [
@@ -227,7 +181,7 @@
         },
         {
           "file": "frontend/src/App.tsx",
-          "hash": "7774030915182708230"
+          "hash": "18110307220082544767"
         },
         {
           "file": "frontend/src/env.d.ts",
@@ -243,11 +197,19 @@
         },
         {
           "file": "frontend/src/pages/LoginPage.tsx",
-          "hash": "10676059850226988534"
+          "hash": "8934578900731804786"
+        },
+        {
+          "file": "frontend/src/pages/ResetPasswordPage.tsx",
+          "hash": "159857874224112680"
+        },
+        {
+          "file": "frontend/src/pages/SignupPage.tsx",
+          "hash": "16222577409703819117"
         },
         {
           "file": "frontend/src/styles.css",
-          "hash": "17159485183751221990"
+          "hash": "8746728684647869507"
         },
         {
           "file": "frontend/tsconfig.json",
@@ -256,6 +218,124 @@
         {
           "file": "frontend/vite.config.ts",
           "hash": "16380766672463860113"
+        }
+      ],
+      "backend": [
+        {
+          "file": "backend/.gitignore",
+          "hash": "12809314710469543065"
+        },
+        {
+          "file": "backend/README.md",
+          "hash": "17827157776253261826"
+        },
+        {
+          "file": "backend/config/__init__.py",
+          "hash": "3244421341483603138"
+        },
+        {
+          "file": "backend/config/settings.py",
+          "hash": "15230826226827292402"
+        },
+        {
+          "file": "backend/config/test_settings.py",
+          "hash": "15954983285651324842"
+        },
+        {
+          "file": "backend/config/urls.py",
+          "hash": "11088671428071312896"
+        },
+        {
+          "file": "backend/config/wsgi.py",
+          "hash": "8293879425655727833"
+        },
+        {
+          "file": "backend/core/__init__.py",
+          "hash": "3244421341483603138"
+        },
+        {
+          "file": "backend/core/apps.py",
+          "hash": "6755259931864749140"
+        },
+        {
+          "file": "backend/core/assistant/__init__.py",
+          "hash": "3244421341483603138"
+        },
+        {
+          "file": "backend/core/assistant/chain.py",
+          "hash": "15862848228931997307"
+        },
+        {
+          "file": "backend/core/assistant/clients.py",
+          "hash": "431303940456783369"
+        },
+        {
+          "file": "backend/core/assistant/service.py",
+          "hash": "5080842562514515598"
+        },
+        {
+          "file": "backend/core/assistant/structured.py",
+          "hash": "3097339935082348775"
+        },
+        {
+          "file": "backend/core/auth_views.py",
+          "hash": "17740377884478332210"
+        },
+        {
+          "file": "backend/core/migrations/0001_initial.py",
+          "hash": "17335905010577315562"
+        },
+        {
+          "file": "backend/core/migrations/0002_booking_type_activity.py",
+          "hash": "17603131310319970285"
+        },
+        {
+          "file": "backend/core/migrations/__init__.py",
+          "hash": "3244421341483603138"
+        },
+        {
+          "file": "backend/core/models.py",
+          "hash": "9996813742631255197"
+        },
+        {
+          "file": "backend/core/persistence.py",
+          "hash": "1746127528624222649"
+        },
+        {
+          "file": "backend/core/serializers.py",
+          "hash": "15308664547162560565"
+        },
+        {
+          "file": "backend/core/tests/__init__.py",
+          "hash": "3244421341483603138"
+        },
+        {
+          "file": "backend/core/tests/test_assistant.py",
+          "hash": "3868120759099124750"
+        },
+        {
+          "file": "backend/core/tests/test_auth_flow.py",
+          "hash": "12988381641670559913"
+        },
+        {
+          "file": "backend/core/urls.py",
+          "hash": "8912590369217331871"
+        },
+        {
+          "file": "backend/core/views.py",
+          "hash": "5562425232534603076"
+        },
+        {
+          "file": "backend/manage.py",
+          "hash": "3099283543561205838"
+        },
+        {
+          "file": "backend/project.json",
+          "hash": "14444754108214955846"
+        },
+        {
+          "file": "backend/pyproject.toml",
+          "hash": "2678499935087244290"
         }
       ]
     }

@@ -1,5 +1,7 @@
 import { Navigate, Route, Routes, BrowserRouter, useLocation, useNavigate } from 'react-router-dom';
 import { LoginPage } from './pages/LoginPage';
+import { SignupPage } from './pages/SignupPage';
+import { ResetPasswordPage } from './pages/ResetPasswordPage';
 import { DashboardPage } from './pages/DashboardPage';
 
 function isJwtExpired(token: string | null) {
@@ -33,6 +35,9 @@ export default function App() {
       <Routes>
         <Route path="/" element={<Navigate to="/login" replace />} />
         <Route path="/login" element={<LoginPage />} />
+        <Route path="/signup" element={<SignupPage />} />
+        <Route path="/reset-password" element={<ResetPasswordPage />} />
+        <Route path="/reset-password/confirm" element={<ResetPasswordPage confirm />} />
         <Route
           path="/dashboard"
           element={

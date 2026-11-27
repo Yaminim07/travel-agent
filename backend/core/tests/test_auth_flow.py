@@ -1,6 +1,8 @@
+from urllib.parse import parse_qs, urlsplit
 from unittest.mock import patch
 
 from django.contrib.auth import get_user_model
+from django.core import mail
 from django.test import TestCase
 from rest_framework.test import APIClient
 
@@ -16,14 +18,137 @@ class AuthFlowTests(TestCase):
             password="StrongPass123!",
         )
 
-    def test_google_login_route_is_disabled_for_manual_login(self):
+    def test_manual_login_returns_auth_tokens(self):
         response = self.client.post(
             "/api/auth/login/",
             {"email": "demo@example.com", "password": "StrongPass123!"},
             format="json",
         )
 
-        self.assertEqual(response.status_code, 410)
+        self.assertEqual(response.status_code, 200)
+        self.assertIn("access", response.data)
+        self.assertIn("refresh", response.data)
+        self.assertEqual(response.data["user"]["email"], self.user.email)
+
+    def test_signup_creates_user_and_returns_auth_tokens(self):
+        response = self.client.post(
+            "/api/auth/signup/",
+            {
+                "first_name": "Taylor",
+                "last_name": "Traveller",
+                "email": "taylor@example.com",
+                "password": "TravellerSafe123!",
+            },
+            format="json",
+        )
+
+        self.assertEqual(response.status_code, 201)
+        self.assertEqual(response.data["user"]["email"], "taylor@example.com")
+        self.assertIn("access", response.data)
+        self.assertTrue(get_user_model().objects.get(email="taylor@example.com").check_password("TravellerSafe123!"))
+
+    def test_signup_rejects_duplicate_email_and_weak_password(self):
+        duplicate_response = self.client.post(
+            "/api/auth/signup/",
+            {
+                "first_name": "Demo",
+                "last_name": "User",
+                "email": "DEMO@example.com",
+                "password": "AnotherSafe987!",
+            },
+            format="json",
+        )
+        weak_password_response = self.client.post(
+            "/api/auth/signup/",
+            {
+                "first_name": "Taylor",
+                "last_name": "Traveller",
+                "email": "taylor@example.com",
+                "password": "12345678",
+            },
+            format="json",
+        )
+
+        self.assertEqual(duplicate_response.status_code, 400)
+        self.assertEqual(weak_password_response.status_code, 400)
+
+    def test_manual_login_rejects_invalid_password(self):
+        response = self.client.post(
+            "/api/auth/login/",
+            {"email": "demo@example.com", "password": "incorrect"},
+            format="json",
+        )
+
+        self.assertEqual(response.status_code, 401)
+
+    def test_password_reset_request_is_generic_and_reset_token_is_single_use(self):
+        with self.settings(
+            EMAIL_BACKEND="django.core.mail.backends.locmem.EmailBackend",
+            FRONTEND_URL="http://localhost:5173",
+        ):
+            existing_response = self.client.post(
+                "/api/auth/password-reset/",
+                {"email": self.user.email},
+                format="json",
+            )
+            unknown_response = self.client.post(
+                "/api/auth/password-reset/",
+                {"email": "unknown@example.com"},
+                format="json",
+            )
+
+        self.assertEqual(existing_response.status_code, 200)
+        self.assertEqual(unknown_response.status_code, 200)
+        self.assertEqual(existing_response.data, unknown_response.data)
+        self.assertEqual(len(mail.outbox), 1)
+
+        reset_url = next(
+            part for part in mail.outbox[0].body.split() if part.startswith("http://")
+        )
+        reset_params = parse_qs(urlsplit(reset_url).query)
+        reset_response = self.client.post(
+            "/api/auth/password-reset/confirm/",
+            {
+                "uid": reset_params["uid"][0],
+                "token": reset_params["token"][0],
+                "password": "AnotherStrongPass987!",
+                "password_confirm": "AnotherStrongPass987!",
+            },
+            format="json",
+        )
+        replay_response = self.client.post(
+            "/api/auth/password-reset/confirm/",
+            {
+                "uid": reset_params["uid"][0],
+                "token": reset_params["token"][0],
+                "password": "AnotherStrongPass987!",
+                "password_confirm": "AnotherStrongPass987!",
+            },
+            format="json",
+        )
+        login_response = self.client.post(
+            "/api/auth/login/",
+            {"email": self.user.email, "password": "AnotherStrongPass987!"},
+            format="json",
+        )
+
+        self.assertEqual(reset_response.status_code, 200)
+        self.assertEqual(replay_response.status_code, 400)
+        self.assertEqual(login_response.status_code, 200)
+
+    def test_password_reset_rejects_mismatched_confirmation(self):
+        response = self.client.post(
+            "/api/auth/password-reset/confirm/",
+            {
+                "uid": "invalid",
+                "token": "invalid",
+                "password": "AnotherStrongPass987!",
+                "password_confirm": "DifferentStrongPass987!",
+            },
+            format="json",
+        )
+
+        self.assertEqual(response.status_code, 400)
 
     def test_me_requires_auth(self):
         response = self.client.get("/api/auth/me/")

@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { Button, Text } from '@mantine/core';
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000/api';
@@ -26,6 +26,38 @@ export function LoginPage() {
       navigate('/dashboard');
     }
   }, [navigate]);
+
+  const handlePasswordLogin = async (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    setLoading(true);
+    setError('');
+
+    const formData = new FormData(event.currentTarget);
+    try {
+      const response = await fetch(`${API_BASE_URL}/auth/login/`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          email: formData.get('email'),
+          password: formData.get('password'),
+        }),
+      });
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.detail || 'Unable to sign in with those credentials.');
+      }
+
+      localStorage.setItem('accessToken', data.access);
+      localStorage.setItem('refreshToken', data.refresh);
+      localStorage.setItem('userEmail', data.user.email);
+      navigate('/dashboard');
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Unable to sign in right now.');
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const handleGoogleLogin = async () => {
     setLoading(true);
@@ -80,20 +112,41 @@ export function LoginPage() {
 
         <div className="login-form-panel">
           <div className="login-form-wrap sso-form-wrap">
-            <div className="form-label">Welcome</div>
-            <h2>Continue with Google</h2>
+            <div className="form-label">Welcome back</div>
+            <h2>Sign in</h2>
             <p className="subtle-text">
-              Sign in with your Google account to access your trips, bookings, and travel insights.
+              Sign in to access your trips, bookings, and travel insights.
             </p>
 
-            {error ? (
-              <div style={{ marginTop: 8, color: '#b42318', fontWeight: 600 }}>{error}</div>
-            ) : null}
+            {error ? <div className="auth-message error-message" role="alert">{error}</div> : null}
+
+            <form className="signup-form login-auth-form" onSubmit={handlePasswordLogin}>
+              <label className="signup-field">
+                <span>Email address</span>
+                <input className="form-input" type="email" name="email" autoComplete="email" required />
+              </label>
+              <label className="signup-field">
+                <span>Password</span>
+                <input className="form-input" type="password" name="password" autoComplete="current-password" required />
+              </label>
+              <div className="login-auth-footer">
+                <Link to="/reset-password">Forgot password?</Link>
+              </div>
+              <button className="primary-btn signup-submit" type="submit" disabled={loading}>
+                {loading ? 'Signing in…' : 'Sign in'}
+              </button>
+            </form>
+
+            <div className="divider-row">
+              <span />
+              <small>or continue with Google</small>
+              <span />
+            </div>
 
             <Button
               className="google-btn"
               radius={18}
-              size="lg"
+              size="md"
               loading={loading}
               onClick={handleGoogleLogin}
               leftSection={<span aria-hidden="true">G</span>}
@@ -101,15 +154,9 @@ export function LoginPage() {
               Continue with Google
             </Button>
 
-            <div className="divider-row">
-              <span />
-              <small>Secure SSO</small>
-              <span />
-            </div>
-
-            <Text size="sm" c="dimmed" ta="center">
-              We only use Google sign-in to protect your itinerary data and keep your travel plans synced.
-            </Text>
+            <p className="sign-up-link">
+              New to Travel Agent? <Link to="/signup">Create an account</Link>
+            </p>
           </div>
         </div>
       </div>
